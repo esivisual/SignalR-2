@@ -4,9 +4,36 @@ var supportConnection = new signalR.HubConnectionBuilder()
     .withUrl("/supporthub")
     .build();
 
+
+var chatRoomConnection = new signalR.HubConnectionBuilder()
+    .withUrl("/chathub")
+    .build();
+
+
 function Init() {
     supportConnection.start();
+    chatRoomConnection.start();
+
+    var answerForm = $('#answerForm');
+
+    answerForm.on('submit', function (e) {
+        e.preventDefault();
+
+        var text = e.target[0].value;
+        e.target[0].value = '';
+
+        sendMessage(text);
+
+    });
 }
+
+function sendMessage(text) {
+    if (text && text.length) {
+        supportConnection.invoke('SendMessage', activeRoomId, text);
+    }
+}
+
+chatRoomConnection.on('getNewMessage', showMessage);
 
 $(document).ready(function () {
     Init();
@@ -62,7 +89,11 @@ function setActiveRoomButton(el) {
 function switchActiveRoomTo(id) {
     if (id === activeRoomId) return;
     removeAllchildern(roomMessageEl);
+
     activeRoomId = id;
+    chatRoomConnection.invoke('LeaveRoom', activeRoomId);
+
+    chatRoomConnection.invoke('JoinRoom', activeRoomId);
     supportConnection.invoke('LoadMessage', activeRoomId);
 }
 

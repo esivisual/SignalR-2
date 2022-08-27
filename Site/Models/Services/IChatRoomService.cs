@@ -1,4 +1,5 @@
-﻿using Site.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using Site.Context;
 using Site.Models.Entites;
 
 namespace Site.Models.Services
@@ -37,7 +38,10 @@ namespace Site.Models.Services
 
         public async Task<List<Guid>?> GetAllRoom()
         {
-            var rooms = _context.ChatRooms?.Select(p => p.Id).ToList();
+            var rooms = _context.ChatRooms?
+                .Include(p=> p.ChatMessage)
+                .Where(p=> p.ChatMessage.Any())
+                .Select(p => p.Id).ToList();
             return await Task.FromResult(rooms);
         }
 

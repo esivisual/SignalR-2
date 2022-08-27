@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Site.Models.Services;
 
 namespace Site.Hubs
@@ -26,6 +27,19 @@ namespace Site.Hubs
 
             await Clients.Groups(roomId.ToString()).SendAsync("getNewMessage", messageDTO.Sender, messageDTO.Message, messageDTO.Time);
         }
+
+        [Authorize]
+        public async Task JoinRoom(Guid roomId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomId.ToString());
+        }
+        
+        [Authorize]
+        public async Task LeaveRoom(Guid roomId)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId.ToString());
+        }
+
         public override async Task OnConnectedAsync()
         {
             if (Context.User.Identity.IsAuthenticated)
